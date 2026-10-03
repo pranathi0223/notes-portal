@@ -1,0 +1,4 @@
+{
+  "httpMethod": "POST",
+  "body": "{\"title\":\"My First Note\",\"content\":\"Hello from Notes Portal!\"}"
+}
