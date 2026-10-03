@@ -2,6 +2,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
 Resources:
+
   NotesTable:
     Type: AWS::Serverless::SimpleTable
     Properties:
@@ -16,16 +17,26 @@ Resources:
       Handler: app.lambda_handler
       Runtime: python3.12
       Timeout: 60
+
       Environment:
         Variables:
           TABLE_NAME: !Ref NotesTable
           DYNAMODB_ENDPOINT: http://dynamodb-local:8000
+
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NotesTable
+
       Events:
+
         NotesApi:
           Type: Api
           Properties:
             Path: /notes
+            Method: ANY
+
+        NotesByIdApi:
+          Type: Api
+          Properties:
+            Path: /notes/{id}
             Method: ANY

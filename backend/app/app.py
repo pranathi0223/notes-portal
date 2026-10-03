@@ -22,7 +22,7 @@ def lambda_handler(event, context):
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Headers": "Content-Type",
-        "Access-Control-Allow-Methods": "GET,POST,OPTIONS"
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS"
     }
 
     if method == "OPTIONS":
@@ -32,6 +32,7 @@ def lambda_handler(event, context):
             "body": ""
         }
 
+    # GET - Get all notes
     if method == "GET":
         response = table.scan()
 
@@ -41,6 +42,7 @@ def lambda_handler(event, context):
             "body": json.dumps(response.get("Items", []))
         }
 
+    # POST - Add a new note
     if method == "POST":
         body = json.loads(event.get("body", "{}"))
 
@@ -56,6 +58,62 @@ def lambda_handler(event, context):
             "statusCode": 201,
             "headers": cors_headers,
             "body": json.dumps(note)
+        }
+
+    # PUT - Edit a note
+    if method == "PUT":
+        note_id = event.get("pathParameters", {}).get("id")
+
+        body = json.loads(event.get("body", "{}"))
+
+        if not note_id:
+            return {
+                "statusCode": 400,
+                "headers": cors_headers,
+                "body": json.dumps({"message": "Note ID is required"})
+            }
+
+        response = table.update_item(
+            Key={"id": note_id},
+            UpdateExpression="SET #t = :title, #c = :content",
+            ExpressionAttributeNames={
+                "#t": "title",
+                "#c": "content"
+            },
+            ExpressionAttributeValues={
+                ":title": body.get("title", ""),
+                ":content": body.get("content", "")
+            },
+            ReturnValues="ALL_NEW"
+        )
+
+        return {
+            "statusCode": 200,
+            "headers": cors_headers,
+            "body": json.dumps(response.get("Attributes", {}))
+        }
+
+    # DELETE - Delete a note
+    if method == "DELETE":
+        note_id = event.get("pathParameters", {}).get("id")
+
+        if not note_id:
+            return {
+                "statusCode": 400,
+                "headers": cors_headers,
+                "body": json.dumps({"message": "Note ID is required"})
+            }
+
+        table.delete_item(
+            Key={"id": note_id}
+        )
+
+        return {
+            "statusCode": 200,
+            "headers": cors_headers,
+            "body": json.dumps({
+                "message": "Note deleted successfully"
+            })
         }
 
     return {
