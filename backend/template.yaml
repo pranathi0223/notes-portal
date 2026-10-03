@@ -2,6 +2,13 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
 Resources:
+  NotesTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: id
+        Type: String
+
   NotesFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -9,9 +16,15 @@ Resources:
       Handler: app.lambda_handler
       Runtime: python3.12
       Timeout: 10
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref NotesTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NotesTable
       Events:
         NotesApi:
           Type: Api
           Properties:
             Path: /notes
-            Method: get
+            Method: ANY

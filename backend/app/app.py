@@ -1,6 +1,10 @@
 import json
+import os
+import uuid
+import boto3
 
-notes = []
+dynamodb = boto3.resource("dynamodb")
+table = dynamodb.Table(os.environ["TABLE_NAME"])
 
 
 def lambda_handler(event, context):
@@ -8,10 +12,12 @@ def lambda_handler(event, context):
 
     # Get all notes
     if method == "GET":
+        response = table.scan()
+
         return {
             "statusCode": 200,
             "headers": {"Content-Type": "application/json"},
-            "body": json.dumps(notes)
+            "body": json.dumps(response.get("Items", []))
         }
 
     # Create a note
@@ -19,12 +25,12 @@ def lambda_handler(event, context):
         body = json.loads(event.get("body", "{}"))
 
         note = {
-            "id": len(notes) + 1,
+            "id": str(uuid.uuid4()),
             "title": body.get("title", ""),
             "content": body.get("content", "")
         }
 
-        notes.append(note)
+        table.put_item(Item=note)
 
         return {
             "statusCode": 201,
