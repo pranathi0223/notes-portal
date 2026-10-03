@@ -15,10 +15,11 @@ Resources:
       CodeUri: app/
       Handler: app.lambda_handler
       Runtime: python3.12
-      Timeout: 10
+      Timeout: 60
       Environment:
         Variables:
           TABLE_NAME: !Ref NotesTable
+          DYNAMODB_ENDPOINT: http://dynamodb-local:8000
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref NotesTable

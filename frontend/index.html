@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes Portal</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f4f6f8;
+        }
+
+        header {
+            background: #222;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 700px;
+            margin: 30px auto;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        textarea {
+            height: 120px;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .note {
+            background: white;
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px #ccc;
+        }
+
+        .note h3 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>Notes Portal</h1>
+    <p>Simple AWS Serverless Notes App</p>
+</header>
+
+<div class="container">
+
+    <h2>Add a Note</h2>
+
+    <input type="text" id="title" placeholder="Enter note title">
+
+    <textarea id="content" placeholder="Enter note content"></textarea>
+
+    <button onclick="addNote()">Add Note</button>
+
+    <h2>My Notes</h2>
+
+    <button onclick="loadNotes()">Refresh Notes</button>
+
+    <div id="notes"></div>
+
+</div>
+
+<script>
+
+const API_URL = "http://127.0.0.1:3000/notes";
+
+async function addNote() {
+
+    const title = document.getElementById("title").value;
+    const content = document.getElementById("content").value;
+
+    if (title === "" || content === "") {
+        alert("Please enter title and content");
+        return;
+    }
+
+    try {
+
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                title: title,
+                content: content
+            })
+        });
+
+        const data = await response.json();
+
+        alert("Note added successfully!");
+
+        document.getElementById("title").value = "";
+        document.getElementById("content").value = "";
+
+        loadNotes();
+
+    } catch (error) {
+
+        console.error(error);
+        alert("Unable to connect to backend");
+
+    }
+}
+
+async function loadNotes() {
+
+    try {
+
+        const response = await fetch(API_URL);
+        const notes = await response.json();
+
+        const notesDiv = document.getElementById("notes");
+
+        notesDiv.innerHTML = "";
+
+        notes.forEach(note => {
+
+            const div = document.createElement("div");
+
+            div.className = "note";
+
+            div.innerHTML = `
+                <h3>${note.title}</h3>
+                <p>${note.content}</p>
+            `;
+
+            notesDiv.appendChild(div);
+
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        document.getElementById("notes").innerHTML =
+            "<p>Unable to load notes. Start the backend first.</p>";
+
+    }
+}
+
+loadNotes();
+
+</script>
+
+</body>
+</html>
